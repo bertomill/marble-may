@@ -19,6 +19,7 @@ export interface Project {
   whiteboard_image?: string;
   generated_code?: Record<string, string>;
   published_url?: string;
+  preview_url?: string;
   created_at?: any;
   updated_at?: any;
 }

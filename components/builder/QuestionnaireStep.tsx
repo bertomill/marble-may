@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import WhiteboardCanvas from './WhiteboardCanvas';
 import AppDetailsPanel from './AppDetailsPanel';
+import type { Project } from '@/types';
 
 export default function QuestionnaireStep({
   onSubmit,
@@ -23,6 +24,19 @@ export default function QuestionnaireStep({
     onSubmit(projectName, businessDetails, sketchData, imageData);
   };
 
+  // Create a partial project object for the details panel
+  const projectData: Partial<Project> = {
+    name: projectName,
+    business_details: businessDetails,
+    features: []
+  };
+
+  // Handler for project updates from the details panel
+  const handleProjectUpdate = (updates: Partial<Project>) => {
+    if (updates.name !== undefined) setProjectName(updates.name);
+    if (updates.business_details !== undefined) setBusinessDetails(updates.business_details);
+  };
+
   return (
     <div className="relative h-[calc(100vh-14rem)] md:h-[calc(100vh-12rem)] w-full">
       {/* Main whiteboard canvas */}
@@ -35,10 +49,10 @@ export default function QuestionnaireStep({
       {/* App details panel in top right */}
       <div className="absolute top-4 right-4 z-10 w-full max-w-md">
         <AppDetailsPanel
-          projectName={projectName}
-          businessDetails={businessDetails}
-          onProjectNameChange={setProjectName}
-          onBusinessDetailsChange={setBusinessDetails}
+          project={projectData}
+          onUpdate={handleProjectUpdate}
+          onClose={() => {}} // Not used here but required by props
+          isOpen={true}
         />
       </div>
     </div>

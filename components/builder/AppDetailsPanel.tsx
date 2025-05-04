@@ -1,85 +1,125 @@
 'use client';
 
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import type { Project } from '@/types';
 
-type AppDetailsPanelProps = {
-  projectName: string;
-  businessDetails: string;
-  onProjectNameChange: (name: string) => void;
-  onBusinessDetailsChange: (details: string) => void;
-};
+interface AppDetailsPanelProps {
+  project: Partial<Project>;
+  onUpdate: (updates: Partial<Project>) => void;
+  onClose: () => void;
+  isOpen: boolean;
+}
 
-export default function AppDetailsPanel({
-  projectName,
-  businessDetails,
-  onProjectNameChange,
-  onBusinessDetailsChange
+export default function AppDetailsPanel({ 
+  project, 
+  onUpdate, 
+  onClose, 
+  isOpen 
 }: AppDetailsPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [newFeature, setNewFeature] = useState('');
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
+  const handleAddFeature = () => {
+    if (newFeature.trim()) {
+      onUpdate({
+        features: [...(project.features || []), newFeature.trim()]
+      });
+      setNewFeature('');
+    }
+  };
+
+  const handleRemoveFeature = (index: number) => {
+    const newFeatures = [...(project.features || [])];
+    newFeatures.splice(index, 1);
+    onUpdate({ features: newFeatures });
   };
 
   return (
-    <Card className="shadow-lg w-full max-w-md bg-white/95 backdrop-blur">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">App Details</CardTitle>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={toggleExpand} 
-          className="h-8 w-8 p-0"
-        >
-          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </Button>
-      </CardHeader>
-      
-      {isExpanded && (
-        <CardContent>
-          <div className="space-y-4">
+    <div 
+      className={`absolute top-0 right-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ${
+        isOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}
+    >
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">App Details</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            ✕
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+            <input
+              type="text"
+              value={project.name || ''}
+              onChange={(e) => onUpdate({ name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="My Amazing App"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Business Details</label>
+            <textarea
+              value={project.business_details || ''}
+              onChange={(e) => onUpdate({ business_details: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              rows={5}
+              placeholder="Describe your business needs and target customers..."
+            />
+          </div>
+          
+          {project.app_idea && (
             <div>
-              <label className="text-sm font-medium mb-1 block">
-                Project Name
-              </label>
-              <Input
-                value={projectName}
-                onChange={(e) => onProjectNameChange(e.target.value)}
-                placeholder="My Amazing App"
-                className="w-full"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">App Idea</label>
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                {project.app_idea}
+              </div>
             </div>
-            
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Business Details
-              </label>
-              <Textarea
-                value={businessDetails}
-                onChange={(e) => onBusinessDetailsChange(e.target.value)}
-                placeholder="Describe your business needs and target customers..."
-                rows={4}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="bg-gray-50 p-3 rounded-md">
-              <p className="text-xs text-gray-600 mb-2 font-medium">Tips:</p>
-              <ul className="text-xs text-gray-600 list-disc pl-4 space-y-1">
-                <li>Describe your target customers</li>
-                <li>Explain what problems you solve</li>
-                <li>Sketch your UI ideas on the canvas</li>
-                <li>Add key features or requirements</li>
-              </ul>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Features</label>
+            <div className="space-y-2">
+              {(project.features || []).map((feature, index) => (
+                <div key={index} className="flex items-center">
+                  <span className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                    {feature}
+                  </span>
+                  <button 
+                    onClick={() => handleRemoveFeature(index)}
+                    className="ml-2 text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              
+              <div className="flex">
+                <input
+                  type="text"
+                  value={newFeature}
+                  onChange={(e) => setNewFeature(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md"
+                  placeholder="Add new feature"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddFeature();
+                    }
+                  }}
+                />
+                <button 
+                  onClick={handleAddFeature}
+                  className="px-3 py-2 bg-emerald-600 text-white rounded-r-md hover:bg-emerald-700"
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
-        </CardContent>
-      )}
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 } 

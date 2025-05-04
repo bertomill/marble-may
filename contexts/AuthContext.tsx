@@ -8,6 +8,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  Auth,
+  UserCredential 
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -29,9 +31,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log('Setting up auth state listener with auth instance:', auth);
     
+    if (!auth) {
+      console.error('Auth instance is null');
+      setLoading(false);
+      return () => {};
+    }
+    
     try {
       // Set up auth state change listener
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth as Auth, (user) => {
         console.log('Auth state changed:', user ? 'User signed in' : 'No user');
         setUser(user);
         setLoading(false);
@@ -49,34 +57,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<void> => {
+    if (!auth) throw new Error('Auth not initialized');
+    
     console.log('Login attempt:', { email });
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth as Auth, email, password);
       console.log('Login successful:', userCredential.user.uid);
-      return userCredential;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string): Promise<void> => {
+    if (!auth) throw new Error('Auth not initialized');
+    
     console.log('Registration attempt:', { email });
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth as Auth, email, password);
       console.log('Registration successful:', userCredential.user.uid);
-      return userCredential;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
+    if (!auth) throw new Error('Auth not initialized');
+    
     console.log('Logout attempt');
     try {
-      await signOut(auth);
+      await signOut(auth as Auth);
       console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
@@ -84,10 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<void> => {
+    if (!auth) throw new Error('Auth not initialized');
+    
     console.log('Password reset attempt:', { email });
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth as Auth, email);
       console.log('Password reset email sent');
     } catch (error) {
       console.error('Password reset error:', error);
@@ -95,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     login,

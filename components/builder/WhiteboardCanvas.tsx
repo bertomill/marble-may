@@ -107,12 +107,14 @@ export default function WhiteboardCanvas({
         <div className="flex-1 h-full">
           {typeof window !== 'undefined' && (
             <Excalidraw
-              ref={excalidrawRef}
               initialData={initialData}
               zenModeEnabled={false}
               gridModeEnabled={true}
               theme="light"
               name="app-builder-canvas"
+              excalidrawAPI={newApi => {
+                excalidrawRef.current = newApi;
+              }}
             />
           )}
         </div>

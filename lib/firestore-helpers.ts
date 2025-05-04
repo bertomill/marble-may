@@ -8,7 +8,8 @@ import {
   serverTimestamp,
   FirestoreDataConverter,
   DocumentData,
-  QueryDocumentSnapshot
+  QueryDocumentSnapshot,
+  Firestore
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Project } from '@/types';
@@ -91,24 +92,30 @@ export const projectConverter: FirestoreDataConverter<Project> = {
 };
 
 // Project collection reference with converter
-export const projectsCollection = () => 
-  collection(db, 'projects').withConverter(projectConverter);
+export const projectsCollection = () => {
+  if (!db) throw new Error('Firestore not initialized');
+  return collection(db as Firestore, 'projects').withConverter(projectConverter);
+}
 
 // Create a new project
 export async function createProject(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>) {
+  if (!db) throw new Error('Firestore not initialized');
+  
   const projectWithTimestamps = {
     ...project,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp()
   };
   
-  const docRef = await addDoc(collection(db, 'projects'), projectWithTimestamps);
+  const docRef = await addDoc(collection(db as Firestore, 'projects'), projectWithTimestamps);
   return { ...project, id: docRef.id };
 }
 
 // Update an existing project
 export async function updateProject(id: string, project: Partial<Project>) {
-  const projectRef = doc(db, 'projects', id);
+  if (!db) throw new Error('Firestore not initialized');
+  
+  const projectRef = doc(db as Firestore, 'projects', id);
   const updateData = { 
     ...project,
     updated_at: serverTimestamp(),

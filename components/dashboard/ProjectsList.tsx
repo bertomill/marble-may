@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, Firestore } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import {
   Card,
@@ -34,11 +34,21 @@ interface ProjectsListProps {
 export default function ProjectsList({ projects }: ProjectsListProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const handleDeleteProject = async (projectId: string) => {
+  const handleDeleteProject = async (projectId?: string) => {
+    if (!projectId) {
+      toast.error('Project ID is missing');
+      return;
+    }
+
+    if (!db) {
+      toast.error('Database not initialized');
+      return;
+    }
+    
     setDeleting(projectId);
     
     try {
-      await deleteDoc(doc(db, 'projects', projectId));
+      await deleteDoc(doc(db as Firestore, 'projects', projectId));
       toast.success('Project deleted successfully');
       // Force a refresh of the page
       window.location.reload();
